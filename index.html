@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>China's Foreign Humanitarian Assistance — Post-Disaster Reconstruction Database</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --red: #C0392B;
+    --red-dark: #922B21;
+    --red-light: #FADBD8;
+    --gold: #D4A017;
+    --gold-light: #FEF9E7;
+    --ink: #1a1a2e;
+    --ink-mid: #2c3e50;
+    --ink-light: #566573;
+    --surface: #FAFAF8;
+    --card: #FFFFFF;
+    --border: rgba(0,0,0,0.08);
+  }
+
+  body {
+    font-family: 'Source Serif 4', Georgia, serif;
+    background: var(--surface);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, #8B1A1A 0%, #C0392B 40%, #922B21 100%);
+    padding: 2.5rem 2rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '中';
+    position: absolute;
+    right: -20px; top: -40px;
+    font-size: 220px;
+    color: rgba(255,255,255,0.05);
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 700;
+    pointer-events: none;
+    user-select: none;
+  }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #FFD700;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 2px;
+    margin-bottom: 12px;
+  }
+  .hero h1 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.35;
+    margin-bottom: 6px;
+  }
+  .hero-sub {
+    font-size: 14px;
+    color: rgba(255,255,255,0.65);
+    letter-spacing: 0.5px;
+    margin-bottom: 1.5rem;
+  }
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    overflow: hidden;
+    max-width: 500px;
+  }
+  .stat-item {
+    background: rgba(0,0,0,0.2);
+    padding: 10px 14px;
+    text-align: center;
+  }
+  .stat-num { font-size: 22px; font-weight: 600; color: #FFD700; font-family: 'Noto Serif SC', serif; }
+  .stat-lbl { font-size: 10px; color: rgba(255,255,255,0.65); letter-spacing: 0.5px; margin-top: 2px; text-transform: uppercase; }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 1rem 1.5rem;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    position: sticky; top: 0; z-index: 50;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .search-box {
+    flex: 1; min-width: 200px;
+    display: flex; align-items: center; gap: 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 12px;
+    background: var(--surface);
+  }
+  .search-box input {
+    border: none; background: transparent; outline: none;
+    font-size: 13px; color: var(--ink); font-family: inherit; width: 100%;
+  }
+  .search-icon { color: var(--ink-light); }
+  .filter-btn {
+    padding: 7px 14px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--ink-mid);
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .filter-btn.active, .filter-btn:hover {
+    background: var(--red); color: white; border-color: var(--red);
+  }
+  .add-btn {
+    padding: 8px 18px;
+    border-radius: 4px;
+    background: var(--red); color: white;
+    border: none; font-size: 12px; cursor: pointer;
+    font-family: inherit; font-weight: 600;
+    letter-spacing: 0.3px; transition: background 0.15s;
+  }
+  .add-btn:hover { background: var(--red-dark); }
+
+  /* ── LAYOUT ── */
+  .main-layout {
+    display: grid;
+    grid-template-columns: 230px 1fr;
+    min-height: calc(100vh - 200px);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    background: var(--card);
+    border-right: 1px solid var(--border);
+    padding: 1.5rem 0;
+    position: sticky;
+    top: 57px;
+    height: calc(100vh - 57px);
+    overflow-y: auto;
+  }
+  .sidebar-section { margin-bottom: 1.75rem; }
+  .sidebar-title {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    padding: 0 1.25rem;
+    margin-bottom: 6px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 1.25rem;
+    font-size: 13px;
+    color: var(--ink-mid);
+    cursor: pointer;
+    transition: background 0.12s;
+    border-left: 2px solid transparent;
+    user-select: none;
+  }
+  .nav-item:hover { background: var(--red-light); color: var(--red); }
+  .nav-item.active {
+    background: var(--red-light); color: var(--red);
+    border-left-color: var(--red); font-weight: 600;
+  }
+  .nav-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.5; flex-shrink: 0; }
+  .nav-count {
+    margin-left: auto;
+    background: var(--red-light); color: var(--red);
+    font-size: 10px; padding: 1px 7px;
+    border-radius: 10px; font-weight: 600;
+  }
+
+  /* ── CONTENT ── */
+  .content-area { padding: 1.5rem; }
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.25rem;
+  }
+  .section-header h2 {
+    font-size: 16px; font-weight: 600;
+    color: var(--ink); font-family: 'Noto Serif SC', serif;
+  }
+  .view-toggle { display: flex; gap: 4px; }
+  .view-btn {
+    width: 30px; height: 30px; border-radius: 4px;
+    border: 1px solid var(--border);
+    background: transparent; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-light); font-size: 14px;
+    transition: all 0.12s;
+  }
+  .view-btn.active { background: var(--red); border-color: var(--red); color: white; }
+
+  /* ── CARDS ── */
+  .entry-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 14px;
+  }
+  .entry-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: box-shadow 0.15s, transform 0.15s;
+  }
+  .entry-card:hover {
+    box-shadow: 0 6px 24px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+  }
+  .card-accent { height: 3px; background: var(--red); }
+  .card-accent.gold { background: var(--gold); }
+  .card-accent.teal { background: #1abc9c; }
+  .card-accent.blue { background: #2980b9; }
+
+  .card-body { padding: 14px; }
+  .card-tag {
+    display: inline-block;
+    font-size: 10px; letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 2px 8px; border-radius: 2px;
+    margin-bottom: 8px; font-weight: 600;
+  }
+  .tag-reconstruction { background: #FADBD8; color: #922B21; }
+  .tag-emergency      { background: #FEF9E7; color: #9A7D0A; }
+  .tag-infrastructure { background: #D6EAF8; color: #1A5276; }
+  .tag-livelihood     { background: #D5F5E3; color: #1D8348; }
+
+  .card-title {
+    font-size: 13px; font-weight: 600; color: var(--ink);
+    margin-bottom: 6px; line-height: 1.4;
+    font-family: 'Noto Serif SC', serif;
+  }
+  .card-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .meta-pill { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--ink-light); }
+  .card-desc {
+    font-size: 12px; color: var(--ink-light); line-height: 1.5;
+    display: -webkit-box; -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .card-footer {
+    border-top: 1px solid var(--border);
+    padding: 8px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card-year { font-size: 11px; color: var(--ink-light); }
+  .card-status { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+  .status-completed { background: #D5F5E3; color: #1D8348; }
+  .status-ongoing   { background: #FEF9E7; color: #9A7D0A; }
+  .status-planned   { background: #D6EAF8; color: #1A5276; }
+
+  /* ── TABLE VIEW ── */
+  .table-view { display: none; overflow-x: auto; }
+  .table-view table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 600px; }
+  .table-view th {
+    text-align: left; padding: 10px 14px;
+    font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--ink-light); border-bottom: 2px solid var(--border); font-weight: 600;
+    background: var(--surface);
+  }
+  .table-view td { padding: 11px 14px; border-bottom: 1px solid var(--border); color: var(--ink-mid); }
+  .table-view tr:hover td { background: #FFF5F5; }
+
+  /* ── MODAL PANEL ── */
+  .panel-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    display: none; z-index: 200;
+    align-items: flex-start; justify-content: flex-end;
+  }
+  .panel-overlay.open { display: flex; }
+  .side-panel {
+    width: 420px; height: 100vh;
+    background: var(--card); overflow-y: auto;
+    box-shadow: -8px 0 40px rgba(0,0,0,0.18);
+    animation: slideIn 0.2s ease;
+  }
+  @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
+  .panel-header {
+    background: linear-gradient(135deg, #8B1A1A, #C0392B);
+    padding: 1.75rem 1.5rem 1.25rem;
+    color: white;
+  }
+  .panel-header-top { display: flex; align-items: flex-start; justify-content: space-between; }
+  .panel-header h3 { font-size: 17px; font-family: 'Noto Serif SC', serif; margin-bottom: 4px; }
+  .panel-header p  { font-size: 12px; opacity: 0.7; }
+  .panel-close {
+    background: rgba(255,255,255,0.2); border: none;
+    color: white; width: 30px; height: 30px;
+    border-radius: 4px; cursor: pointer; font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-left: 12px;
+    transition: background 0.15s;
+  }
+  .panel-close:hover { background: rgba(255,255,255,0.35); }
+  .panel-body { padding: 1.5rem; }
+
+  .field-group { margin-bottom: 1.25rem; }
+  .field-group label {
+    display: block; font-size: 11px; font-weight: 600;
+    color: var(--ink-light); letter-spacing: 0.8px;
+    text-transform: uppercase; margin-bottom: 6px;
+  }
+  .field-group input,
+  .field-group select,
+  .field-group textarea {
+    width: 100%; padding: 9px 11px;
+    border: 1px solid var(--border);
+    border-radius: 4px; font-size: 13px;
+    font-family: inherit; color: var(--ink);
+    background: var(--surface); outline: none;
+    transition: border-color 0.15s;
+  }
+  .field-group textarea { resize: vertical; min-height: 90px; }
+  .field-group input:focus,
+  .field-group select:focus,
+  .field-group textarea:focus { border-color: var(--red); }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .save-btn {
+    width: 100%; padding: 11px;
+    background: var(--red); color: white;
+    border: none; border-radius: 4px;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: inherit; margin-top: 8px;
+    transition: background 0.15s;
+  }
+  .save-btn:hover { background: var(--red-dark); }
+
+  /* ── DETAIL MODAL ── */
+  .detail-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    display: none; z-index: 300;
+    align-items: center; justify-content: center;
+    padding: 2rem;
+  }
+  .detail-overlay.open { display: flex; }
+  .detail-modal {
+    background: var(--card); border-radius: 10px;
+    max-width: 580px; width: 100%;
+    max-height: 85vh; overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    animation: fadeUp 0.2s ease;
+  }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .detail-header {
+    background: linear-gradient(135deg, #8B1A1A, #C0392B);
+    padding: 1.5rem; border-radius: 10px 10px 0 0;
+    color: white;
+  }
+  .detail-header-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .detail-header h3 { font-size: 16px; font-family: 'Noto Serif SC', serif; line-height: 1.35; }
+  .detail-body { padding: 1.5rem; }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.25rem; }
+  .detail-field label { font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--ink-light); display: block; margin-bottom: 3px; }
+  .detail-field span { font-size: 13px; color: var(--ink); }
+  .detail-desc { font-size: 13px; color: var(--ink-mid); line-height: 1.65; }
+  .detail-desc-label { font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--ink-light); margin-bottom: 6px; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 2rem; right: 2rem;
+    background: var(--ink); color: white;
+    padding: 12px 20px; border-radius: 6px;
+    font-size: 13px; z-index: 400;
+    display: none; animation: toastIn 0.2s ease;
+  }
+  .toast.show { display: block; }
+  @keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .empty-state { text-align: center; padding: 4rem 1rem; color: var(--ink-light); display: none; }
+  .empty-state .empty-icon { font-size: 40px; opacity: 0.2; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink-light);
+    margin-top: 2rem;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .main-layout { grid-template-columns: 1fr; }
+    .sidebar { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+    .stat-row { grid-template-columns: repeat(2, 1fr); max-width: 100%; }
+    .hero h1 { font-size: 20px; }
+    .side-panel { width: 100vw; }
+    .detail-modal { margin: 0; border-radius: 10px; }
+    .form-row { grid-template-columns: 1fr; }
+    .detail-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">Research Database</div>
+  <h1>China's Foreign Humanitarian Assistance<br>in Post-Disaster Reconstruction</h1>
+  <p class="hero-sub">中国对外人道主义援助与灾后重建数据库</p>
+  <div class="stat-row">
+    <div class="stat-item"><div class="stat-num" id="s-total">24</div><div class="stat-lbl">Total Entries</div></div>
+    <div class="stat-item"><div class="stat-num" id="s-countries">18</div><div class="stat-lbl">Countries</div></div>
+    <div class="stat-item"><div class="stat-num">2005</div><div class="stat-lbl">Earliest Record</div></div>
+    <div class="stat-item"><div class="stat-num">2024</div><div class="stat-lbl">Latest Update</div></div>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <div class="search-box">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="search-input" placeholder="Search by country, year, disaster type…" oninput="filterEntries()">
+  </div>
+  <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+  <button class="filter-btn" onclick="setFilter('reconstruction', this)">Reconstruction</button>
+  <button class="filter-btn" onclick="setFilter('emergency', this)">Emergency</button>
+  <button class="filter-btn" onclick="setFilter('infrastructure', this)">Infrastructure</button>
+  <button class="filter-btn" onclick="setFilter('livelihood', this)">Livelihood</button>
+  <button class="add-btn" onclick="openAddPanel()">+ Add Entry</button>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="main-layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">Browse by Region</div>
+      <div class="nav-item active" onclick="filterRegion('all', this)"><div class="nav-dot"></div>All Regions<span class="nav-count" id="cnt-all">24</span></div>
+      <div class="nav-item" onclick="filterRegion('Asia', this)"><div class="nav-dot"></div>Asia<span class="nav-count" id="cnt-Asia">11</span></div>
+      <div class="nav-item" onclick="filterRegion('Africa', this)"><div class="nav-dot"></div>Africa<span class="nav-count" id="cnt-Africa">6</span></div>
+      <div class="nav-item" onclick="filterRegion('Americas', this)"><div class="nav-dot"></div>Americas<span class="nav-count" id="cnt-Americas">4</span></div>
+      <div class="nav-item" onclick="filterRegion('Oceania', this)"><div class="nav-dot"></div>Oceania<span class="nav-count" id="cnt-Oceania">2</span></div>
+      <div class="nav-item" onclick="filterRegion('Europe', this)"><div class="nav-dot"></div>Europe<span class="nav-count" id="cnt-Europe">1</span></div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">Disaster Type</div>
+      <div class="nav-item" onclick="filterDisaster('Earthquake', this)"><div class="nav-dot"></div>Earthquake</div>
+      <div class="nav-item" onclick="filterDisaster('Flood', this)"><div class="nav-dot"></div>Flood</div>
+      <div class="nav-item" onclick="filterDisaster('Cyclone/Typhoon', this)"><div class="nav-dot"></div>Cyclone / Typhoon</div>
+      <div class="nav-item" onclick="filterDisaster('Tsunami', this)"><div class="nav-dot"></div>Tsunami</div>
+      <div class="nav-item" onclick="filterDisaster('Drought', this)"><div class="nav-dot"></div>Drought</div>
+      <div class="nav-item" onclick="filterDisaster('Other', this)"><div class="nav-dot"></div>Other</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">Aid Phase</div>
+      <div class="nav-item" onclick="filterPhase('Immediate Relief', this)"><div class="nav-dot"></div>Immediate Relief</div>
+      <div class="nav-item" onclick="filterPhase('Early Recovery', this)"><div class="nav-dot"></div>Early Recovery</div>
+      <div class="nav-item" onclick="filterPhase('Long-term Reconstruction', this)"><div class="nav-dot"></div>Long-term Reconstruction</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">Actions</div>
+      <div class="nav-item" onclick="exportCSV()"><div class="nav-dot"></div>⬇ Export as CSV</div>
+      <div class="nav-item" onclick="clearSearch()"><div class="nav-dot"></div>↺ Reset All Filters</div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content-area">
+    <div class="section-header">
+      <h2 id="section-title">All Entries <span style="font-size:13px;font-weight:400;color:var(--ink-light)" id="result-count">(24)</span></h2>
+      <div class="view-toggle">
+        <button class="view-btn active" id="grid-btn" onclick="setView('grid')" title="Card view">⊞</button>
+        <button class="view-btn" id="list-btn" onclick="setView('list')" title="Table view">☰</button>
+      </div>
+    </div>
+
+    <div class="entry-grid" id="entry-grid"></div>
+
+    <div class="table-view" id="table-view">
+      <table>
+        <thead>
+          <tr>
+            <th>Year</th>
+            <th>Title</th>
+            <th>Country</th>
+            <th>Disaster</th>
+            <th>Category</th>
+            <th>Aid Volume (USD M)</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+
+    <div class="empty-state" id="empty-state">
+      <div class="empty-icon">🔍</div>
+      <p>No entries match your search or filters.</p>
+      <button class="filter-btn" style="margin-top:12px" onclick="clearSearch()">Reset Filters</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD ENTRY PANEL -->
+<div class="panel-overlay" id="panel-overlay" onclick="closePanelOutside(event)">
+  <div class="side-panel" id="side-panel">
+    <div class="panel-header">
+      <div class="panel-header-top">
+        <div>
+          <h3>Add New Entry</h3>
+          <p>Record a humanitarian assistance case</p>
+        </div>
+        <button class="panel-close" onclick="closeAddPanel()">✕</button>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="field-group">
+        <label>Case Title *</label>
+        <input type="text" id="f-title" placeholder="e.g. China Aid to Nepal Earthquake 2015">
+      </div>
+      <div class="form-row">
+        <div class="field-group">
+          <label>Recipient Country *</label>
+          <input type="text" id="f-country" placeholder="Country name">
+        </div>
+        <div class="field-group">
+          <label>Region *</label>
+          <select id="f-region">
+            <option value="">Select…</option>
+            <option>Asia</option><option>Africa</option><option>Americas</option><option>Oceania</option><option>Europe</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field-group">
+          <label>Year *</label>
+          <input type="number" id="f-year" placeholder="e.g. 2015" min="1990" max="2030">
+        </div>
+        <div class="field-group">
+          <label>Disaster Type *</label>
+          <select id="f-disaster">
+            <option value="">Select…</option>
+            <option>Earthquake</option><option>Flood</option><option>Cyclone/Typhoon</option>
+            <option>Tsunami</option><option>Drought</option><option>Volcanic Eruption</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field-group">
+          <label>Aid Category *</label>
+          <select id="f-category">
+            <option value="">Select…</option>
+            <option value="reconstruction">Reconstruction</option>
+            <option value="emergency">Emergency Relief</option>
+            <option value="infrastructure">Infrastructure</option>
+            <option value="livelihood">Livelihood</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Aid Phase</label>
+          <select id="f-phase">
+            <option>Immediate Relief</option>
+            <option>Early Recovery</option>
+            <option>Long-term Reconstruction</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Aid Form</label>
+        <select id="f-form">
+          <option>Material / Cash Aid</option><option>Infrastructure Build</option>
+          <option>Technical Assistance</option><option>Medical Teams</option>
+          <option>Debt Relief</option><option>Multiple</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="field-group">
+          <label>Implementing Agency</label>
+          <input type="text" id="f-agency" placeholder="e.g. MOFCOM, PLA, RCSC">
+        </div>
+        <div class="field-group">
+          <label>Aid Volume (USD million)</label>
+          <input type="number" id="f-volume" placeholder="e.g. 50" min="0">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field-group">
+          <label>Status</label>
+          <select id="f-status">
+            <option value="completed">Completed</option>
+            <option value="ongoing">Ongoing</option>
+            <option value="planned">Planned</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Data Source</label>
+          <input type="text" id="f-source" placeholder="AidData, MOFCOM, news…">
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Description / Notes</label>
+        <textarea id="f-desc" placeholder="Describe the scope, key outcomes, bilateral context, or other notable aspects of this case…"></textarea>
+      </div>
+      <button class="save-btn" onclick="saveEntry()">💾 Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL VIEW MODAL -->
+<div class="detail-overlay" id="detail-overlay" onclick="closeDetailOutside(event)">
+  <div class="detail-modal" id="detail-modal">
+    <div class="detail-header">
+      <div class="detail-header-top">
+        <h3 id="d-title">—</h3>
+        <button class="panel-close" onclick="closeDetail()">✕</button>
+      </div>
+    </div>
+    <div class="detail-body">
+      <div class="detail-grid">
+        <div class="detail-field"><label>Country</label><span id="d-country">—</span></div>
+        <div class="detail-field"><label>Year</label><span id="d-year">—</span></div>
+        <div class="detail-field"><label>Region</label><span id="d-region">—</span></div>
+        <div class="detail-field"><label>Disaster Type</label><span id="d-disaster">—</span></div>
+        <div class="detail-field"><label>Aid Category</label><span id="d-category">—</span></div>
+        <div class="detail-field"><label>Aid Phase</label><span id="d-phase">—</span></div>
+        <div class="detail-field"><label>Aid Form</label><span id="d-form">—</span></div>
+        <div class="detail-field"><label>Agency</label><span id="d-agency">—</span></div>
+        <div class="detail-field"><label>Volume (USD M)</label><span id="d-volume">—</span></div>
+        <div class="detail-field"><label>Status</label><span id="d-status">—</span></div>
+        <div class="detail-field"><label>Source</label><span id="d-source">—</span></div>
+      </div>
+      <div class="detail-desc-label">Description</div>
+      <div class="detail-desc" id="d-desc">—</div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">Entry saved successfully!</div>
+
+<!-- FOOTER -->
+<footer>
+  <strong>China's Foreign Humanitarian Assistance — Post-Disaster Reconstruction Database</strong><br>
+  中国对外人道主义援助与灾后重建数据库 &nbsp;|&nbsp; For research purposes &nbsp;|&nbsp;
+  Built with HTML · CSS · JavaScript
+</footer>
+
+<script>
+// ─────────────────────────────────────────────
+//  DATA
+// ─────────────────────────────────────────────
+const SAMPLE = [
+  { title:"Sichuan Earthquake — Domestic Reconstruction Benchmark", country:"China (domestic)", region:"Asia", year:2008, disaster:"Earthquake", category:"reconstruction", phase:"Long-term Reconstruction", form:"Infrastructure Build", agency:"State Council / NDRC", volume:"146000", status:"completed", source:"State Council White Paper", desc:"The domestic Sichuan reconstruction set a policy template for China's subsequent overseas reconstruction assistance doctrine, showcasing mobilisation of state enterprise capacity and military logistics." },
+  { title:"Haiti Earthquake Relief & Hospital Construction", country:"Haiti", region:"Americas", year:2010, disaster:"Earthquake", category:"reconstruction", phase:"Long-term Reconstruction", form:"Multiple", agency:"MOFCOM / PLA Medical Team", volume:"10", status:"completed", source:"AidData / MFA", desc:"China deployed a 60-person rescue team, donated $4.4M in relief supplies, and constructed a new government hospital complex in Port-au-Prince." },
+  { title:"Nepal Earthquake Reconstruction Package", country:"Nepal", region:"Asia", year:2015, disaster:"Earthquake", category:"reconstruction", phase:"Long-term Reconstruction", form:"Multiple", agency:"MOFCOM / CNRCC", volume:"483", status:"completed", source:"AidData / Embassy Beijing", desc:"Post-earthquake reconstruction pledge covering housing, schools, hospitals, and cultural heritage sites. Implemented through bilateral aid and grant mechanisms under MOU." },
+  { title:"Pakistan Floods Emergency & Livelihood Aid", country:"Pakistan", region:"Asia", year:2022, disaster:"Flood", category:"emergency", phase:"Early Recovery", form:"Material / Cash Aid", agency:"MOFCOM / RCSC", volume:"100", status:"completed", source:"MOFCOM Bulletin", desc:"Largest single flood response in Pakistan's history. China provided tents, food, medicine, and cash grants through government and civil society channels." },
+  { title:"Mozambique Cyclone Idai — School & Clinic Reconstruction", country:"Mozambique", region:"Africa", year:2019, disaster:"Cyclone/Typhoon", category:"infrastructure", phase:"Long-term Reconstruction", form:"Infrastructure Build", agency:"MOFCOM", volume:"15", status:"completed", source:"FOCAC Reports", desc:"School and health clinic reconstruction in Beira. Part of broader Forum on China-Africa Cooperation (FOCAC) humanitarian commitments." },
+  { title:"Solomon Islands Cyclone Harold Emergency Relief", country:"Solomon Islands", region:"Oceania", year:2020, disaster:"Cyclone/Typhoon", category:"emergency", phase:"Immediate Relief", form:"Material / Cash Aid", agency:"Ministry of Foreign Affairs", volume:"1.5", status:"completed", source:"MFA Press Release", desc:"Emergency relief supplies including food, medicine, and shelter materials dispatched within two weeks of the cyclone." },
+  { title:"Sri Lanka Tsunami Reconstruction Support", country:"Sri Lanka", region:"Asia", year:2005, disaster:"Tsunami", category:"reconstruction", phase:"Long-term Reconstruction", form:"Infrastructure Build", agency:"MOFCOM", volume:"5", status:"completed", source:"AidData", desc:"Housing and fishery infrastructure reconstruction in tsunami-affected coastal communities in the southern and eastern provinces." },
+  { title:"Ecuador Earthquake Relief Package", country:"Ecuador", region:"Americas", year:2016, disaster:"Earthquake", category:"emergency", phase:"Early Recovery", form:"Material / Cash Aid", agency:"MFA / RCSC", volume:"8", status:"completed", source:"Xinhua / AidData", desc:"Emergency grant and supplies following 7.8-magnitude earthquake. Included Chinese rescue team deployment and medical supplies." },
+  { title:"Philippines Typhoon Haiyan Response", country:"Philippines", region:"Asia", year:2013, disaster:"Cyclone/Typhoon", category:"reconstruction", phase:"Early Recovery", form:"Multiple", agency:"MOFCOM", volume:"1.6", status:"completed", source:"AidData", desc:"Initial relief raised questions about adequacy; supplementary aid and reconstruction materials provided via bilateral channels in subsequent months." },
+  { title:"Turkey-Syria Earthquake Emergency Response", country:"Turkey / Syria", region:"Asia", year:2023, disaster:"Earthquake", category:"emergency", phase:"Immediate Relief", form:"Multiple", agency:"MFA / PLA / RCSC", volume:"75", status:"completed", source:"MFA / UN OCHA", desc:"Rapid dispatch of search-and-rescue teams to Turkey; humanitarian aid to Syria through UN channels amid geopolitical constraints." },
+  { title:"Tonga Volcanic Eruption Relief", country:"Tonga", region:"Oceania", year:2022, disaster:"Other", category:"emergency", phase:"Immediate Relief", form:"Material / Cash Aid", agency:"MFA", volume:"3", status:"completed", source:"MFA Press Release", desc:"Emergency food, water purification equipment, and shelter materials airlifted following the Hunga-Tonga eruption and tsunami." },
+  { title:"Zimbabwe Cyclone Idai Recovery Aid", country:"Zimbabwe", region:"Africa", year:2019, disaster:"Cyclone/Typhoon", category:"livelihood", phase:"Early Recovery", form:"Material / Cash Aid", agency:"MOFCOM", volume:"2", status:"completed", source:"FOCAC", desc:"Agricultural recovery support and emergency food aid to Chimanimani district." },
+  { title:"Indonesia Earthquake & Tsunami — Palu Relief", country:"Indonesia", region:"Asia", year:2018, disaster:"Earthquake", category:"emergency", phase:"Early Recovery", form:"Multiple", agency:"MOFCOM / PLA / RCSC", volume:"22", status:"completed", source:"AidData", desc:"Emergency relief and early recovery support following the 7.5-magnitude Palu earthquake and tsunami, including search-and-rescue deployment." },
+  { title:"Myanmar Cyclone Nargis Reconstruction", country:"Myanmar", region:"Asia", year:2008, disaster:"Cyclone/Typhoon", category:"reconstruction", phase:"Long-term Reconstruction", form:"Infrastructure Build", agency:"MOFCOM", volume:"6", status:"completed", source:"AidData", desc:"School and health infrastructure reconstruction in Irrawaddy Delta. Implemented bilaterally amid international access restrictions." },
+  { title:"Afghanistan Earthquake Emergency Relief", country:"Afghanistan", region:"Asia", year:2022, disaster:"Earthquake", category:"emergency", phase:"Immediate Relief", form:"Material / Cash Aid", agency:"MFA", volume:"30", status:"completed", source:"MFA / UN OCHA", desc:"Emergency humanitarian assistance following devastating Khost-Paktika earthquake, channelled through Taliban authorities and UN agencies." },
+  { title:"Laos Dam Collapse Humanitarian Aid", country:"Laos", region:"Asia", year:2018, disaster:"Flood", category:"emergency", phase:"Early Recovery", form:"Multiple", agency:"MOFCOM / CDB", volume:"8.5", status:"completed", source:"Xinhua / MOFCOM", desc:"Emergency relief and engineering support following the Xe-Pian Xe-Namnoy dam collapse; complicated by Chinese firm's role in dam construction." },
+  { title:"Ethiopia Drought Food Security Programme", country:"Ethiopia", region:"Africa", year:2016, disaster:"Drought", category:"livelihood", phase:"Early Recovery", form:"Material / Cash Aid", agency:"MOFCOM / WFP", volume:"14", status:"completed", source:"AidData / WFP", desc:"Food aid co-funded with WFP and bilateral technical assistance for drought-affected regions in the Somali and Afar regions." },
+  { title:"Somalia Drought & Famine Relief", country:"Somalia", region:"Africa", year:2017, disaster:"Drought", category:"emergency", phase:"Immediate Relief", form:"Material / Cash Aid", agency:"MFA / RCSC", volume:"5", status:"completed", source:"MFA", desc:"Emergency food and medicine donations to drought and famine response. Channelled partly through the UN Somalia Humanitarian Fund." },
+  { title:"Bangladesh Cyclone Sidr Reconstruction", country:"Bangladesh", region:"Asia", year:2007, disaster:"Cyclone/Typhoon", category:"reconstruction", phase:"Long-term Reconstruction", form:"Infrastructure Build", agency:"MOFCOM", volume:"7", status:"completed", source:"AidData", desc:"Cyclone-resistant housing and community infrastructure reconstruction in coastal areas of Barisal and Khulna divisions." },
+  { title:"Peru Earthquake Emergency Grant", country:"Peru", region:"Americas", year:2007, disaster:"Earthquake", category:"emergency", phase:"Immediate Relief", form:"Material / Cash Aid", agency:"MFA", volume:"1.5", status:"completed", source:"AidData", desc:"Emergency donation following the 8.0-magnitude Pisco earthquake, covering tents, food, and medicine for displaced populations." },
+  { title:"Vanuatu Cyclone Pam Relief Package", country:"Vanuatu", region:"Oceania", year:2015, disaster:"Cyclone/Typhoon", category:"emergency", phase:"Immediate Relief", form:"Material / Cash Aid", agency:"MFA", volume:"0.8", status:"completed", source:"MFA Press Release", desc:"Emergency material aid dispatched to Vanuatu following Category 5 Cyclone Pam. Part of Pacific Islands development engagement." },
+  { title:"Libya Earthquake Emergency Assistance", country:"Libya", region:"Africa", year:2023, disaster:"Earthquake", category:"emergency", phase:"Immediate Relief", form:"Material / Cash Aid", agency:"MFA / RCSC", volume:"6", status:"completed", source:"MFA", desc:"Emergency humanitarian assistance following catastrophic Derna flooding, including cash donations and emergency supply kits." },
+  { title:"Morocco Earthquake Relief", country:"Morocco", region:"Africa", year:2023, disaster:"Earthquake", category:"emergency", phase:"Immediate Relief", form:"Material / Cash Aid", agency:"MFA / RCSC", volume:"5", status:"completed", source:"MFA Press Release", desc:"Emergency relief donation following the Al-Haouz earthquake. Supplies dispatched via MFA coordination; no search-and-rescue team deployed." },
+  { title:"North Korea Flood Disaster Aid", country:"North Korea", region:"Asia", year:2016, disaster:"Flood", category:"livelihood", phase:"Early Recovery", form:"Material / Cash Aid", agency:"MOFCOM", volume:"12", status:"completed", source:"MOFCOM", desc:"Food, medicine, and agricultural inputs provided following severe summer floods. One of few documented bilateral aid disbursements to DPRK." },
+];
+
+let entries = JSON.parse(localStorage.getItem('china-db-entries') || 'null') || [...SAMPLE];
+let activeFilter = 'all', activeRegion = 'all', activeDisaster = 'all', activePhase = 'all', activeView = 'grid';
+
+function saveToStorage() { localStorage.setItem('china-db-entries', JSON.stringify(entries)); }
+
+// ─────────────────────────────────────────────
+//  RENDER
+// ─────────────────────────────────────────────
+function renderAll(data) {
+  const grid = document.getElementById('entry-grid');
+  const tableBody = document.getElementById('table-body');
+  const empty = document.getElementById('empty-state');
+  const resultCount = document.getElementById('result-count');
+
+  const colorMap = { reconstruction:'', emergency:'gold', infrastructure:'blue', livelihood:'teal' };
+  const tagMap   = { reconstruction:'tag-reconstruction', emergency:'tag-emergency', infrastructure:'tag-infrastructure', livelihood:'tag-livelihood' };
+  const stMap    = { completed:'status-completed', ongoing:'status-ongoing', planned:'status-planned' };
+
+  grid.innerHTML = '';
+  tableBody.innerHTML = '';
+  resultCount.textContent = `(${data.length})`;
+  document.getElementById('s-total').textContent = entries.length;
+  const uniqueCountries = new Set(entries.map(e => e.country));
+  document.getElementById('s-countries').textContent = uniqueCountries.size;
+
+  if (data.length === 0) { empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  data.forEach((e, idx) => {
+    // Card
+    const card = document.createElement('div');
+    card.className = 'entry-card';
+    card.innerHTML = `
+      <div class="card-accent ${colorMap[e.category]||''}"></div>
+      <div class="card-body">
+        <span class="card-tag ${tagMap[e.category]||'tag-reconstruction'}">${e.category}</span>
+        <div class="card-title">${e.title}</div>
+        <div class="card-meta">
+          <span class="meta-pill">⬦ ${e.country}</span>
+          <span class="meta-pill">● ${e.disaster}</span>
+        </div>
+        <div class="card-desc">${e.desc}</div>
+      </div>
+      <div class="card-footer">
+        <span class="card-year">${e.year} · ${e.region}</span>
+        <span class="card-status ${stMap[e.status]||'status-completed'}">${e.status}</span>
+      </div>`;
+    card.onclick = () => openDetail(e);
+    grid.appendChild(card);
+
+    // Table row
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${e.year}</td>
+      <td style="font-weight:500;max-width:220px">${e.title}</td>
+      <td>${e.country}</td>
+      <td>${e.disaster}</td>
+      <td><span class="card-tag ${tagMap[e.category]||''}" style="margin:0">${e.category}</span></td>
+      <td>${e.volume ? '$'+Number(e.volume).toLocaleString() : '—'}</td>
+      <td><span class="card-status ${stMap[e.status]||''}">${e.status}</span></td>`;
+    tr.onclick = () => openDetail(e);
+    tr.style.cursor = 'pointer';
+    tableBody.appendChild(tr);
+  });
+}
+
+// ─────────────────────────────────────────────
+//  FILTER
+// ─────────────────────────────────────────────
+function getFiltered() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  return entries.filter(e => {
+    const mF = activeFilter === 'all' || e.category === activeFilter;
+    const mR = activeRegion === 'all' || e.region === activeRegion;
+    const mD = activeDisaster === 'all' || e.disaster === activeDisaster;
+    const mP = activePhase === 'all' || e.phase === activePhase;
+    const mS = !q || [e.title, e.country, e.disaster, e.form, e.desc, e.agency, String(e.year)].some(f => f && f.toLowerCase().includes(q));
+    return mF && mR && mD && mP && mS;
+  });
+}
+
+function filterEntries() { renderAll(getFiltered()); }
+
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterEntries();
+}
+
+function filterRegion(r, el) {
+  activeRegion = r;
+  activeDisaster = 'all'; activePhase = 'all';
+  document.querySelectorAll('.sidebar .nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+  filterEntries();
+}
+function filterDisaster(d, el) {
+  activeDisaster = d;
+  activeRegion = 'all'; activePhase = 'all';
+  document.querySelectorAll('.sidebar .nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+  filterEntries();
+}
+function filterPhase(p, el) {
+  activePhase = p;
+  activeRegion = 'all'; activeDisaster = 'all';
+  document.querySelectorAll('.sidebar .nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+  filterEntries();
+}
+
+function clearSearch() {
+  document.getElementById('search-input').value = '';
+  activeFilter = 'all'; activeRegion = 'all'; activeDisaster = 'all'; activePhase = 'all';
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.filter-btn')[0].classList.add('active');
+  document.querySelectorAll('.sidebar .nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.sidebar .nav-item')[0].classList.add('active');
+  filterEntries();
+}
+
+// ─────────────────────────────────────────────
+//  VIEW TOGGLE
+// ─────────────────────────────────────────────
+function setView(v) {
+  activeView = v;
+  const grid = document.getElementById('entry-grid');
+  const table = document.getElementById('table-view');
+  if (v === 'grid') {
+    grid.style.display = ''; table.style.display = 'none';
+    document.getElementById('grid-btn').classList.add('active');
+    document.getElementById('list-btn').classList.remove('active');
+  } else {
+    grid.style.display = 'none'; table.style.display = 'block';
+    document.getElementById('list-btn').classList.add('active');
+    document.getElementById('grid-btn').classList.remove('active');
+  }
+}
+
+// ─────────────────────────────────────────────
+//  ADD ENTRY PANEL
+// ─────────────────────────────────────────────
+function openAddPanel() { document.getElementById('panel-overlay').classList.add('open'); }
+function closeAddPanel() { document.getElementById('panel-overlay').classList.remove('open'); }
+function closePanelOutside(e) { if (e.target === document.getElementById('panel-overlay')) closeAddPanel(); }
+
+function saveEntry() {
+  const title    = document.getElementById('f-title').value.trim();
+  const country  = document.getElementById('f-country').value.trim();
+  const region   = document.getElementById('f-region').value;
+  const year     = parseInt(document.getElementById('f-year').value);
+  const disaster = document.getElementById('f-disaster').value;
+  const category = document.getElementById('f-category').value;
+
+  if (!title || !country || !region || !year || !disaster || !category) {
+    alert('Please fill in all required fields (marked with *).');
+    return;
+  }
+
+  const entry = {
+    title, country, region, year, disaster, category,
+    phase:   document.getElementById('f-phase').value,
+    form:    document.getElementById('f-form').value,
+    agency:  document.getElementById('f-agency').value.trim(),
+    volume:  document.getElementById('f-volume').value || '',
+    status:  document.getElementById('f-status').value,
+    source:  document.getElementById('f-source').value.trim(),
+    desc:    document.getElementById('f-desc').value.trim(),
+  };
+
+  entries.unshift(entry);
+  saveToStorage();
+  filterEntries();
+  closeAddPanel();
+
+  // Reset form
+  ['f-title','f-country','f-year','f-agency','f-volume','f-source','f-desc'].forEach(id => document.getElementById(id).value = '');
+  ['f-region','f-disaster','f-category'].forEach(id => document.getElementById(id).value = '');
+
+  showToast('Entry saved successfully!');
+}
+
+// ─────────────────────────────────────────────
+//  DETAIL MODAL
+// ─────────────────────────────────────────────
+function openDetail(e) {
+  document.getElementById('d-title').textContent    = e.title;
+  document.getElementById('d-country').textContent  = e.country;
+  document.getElementById('d-year').textContent     = e.year;
+  document.getElementById('d-region').textContent   = e.region;
+  document.getElementById('d-disaster').textContent = e.disaster;
+  document.getElementById('d-category').textContent = e.category;
+  document.getElementById('d-phase').textContent    = e.phase || '—';
+  document.getElementById('d-form').textContent     = e.form || '—';
+  document.getElementById('d-agency').textContent   = e.agency || '—';
+  document.getElementById('d-volume').textContent   = e.volume ? '$' + Number(e.volume).toLocaleString() + 'M' : '—';
+  document.getElementById('d-status').textContent   = e.status;
+  document.getElementById('d-source').textContent   = e.source || '—';
+  document.getElementById('d-desc').textContent     = e.desc || '—';
+  document.getElementById('detail-overlay').classList.add('open');
+}
+function closeDetail() { document.getElementById('detail-overlay').classList.remove('open'); }
+function closeDetailOutside(e) { if (e.target === document.getElementById('detail-overlay')) closeDetail(); }
+
+// ─────────────────────────────────────────────
+//  EXPORT CSV
+// ─────────────────────────────────────────────
+function exportCSV() {
+  const headers = ['Title','Country','Region','Year','Disaster','Category','Phase','Aid Form','Agency','Volume (USD M)','Status','Source','Description'];
+  const rows = entries.map(e => [
+    e.title, e.country, e.region, e.year, e.disaster, e.category,
+    e.phase, e.form, e.agency, e.volume, e.status, e.source, e.desc
+  ].map(v => `"${String(v||'').replace(/"/g,'""')}"`));
+
+  const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'china_humanitarian_database.csv';
+  a.click();
+  showToast('CSV exported!');
+}
+
+// ─────────────────────────────────────────────
+//  TOAST
+// ─────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ─────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────
+renderAll(entries);
+</script>
+</body>
+</html>
